@@ -14,7 +14,7 @@ fn compute_fuel_from_mass_part2(mass: i32) -> i32 {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn samples_part1() {
+    fn samples_day01_part1() {
         assert_eq!(super::compute_fuel_from_mass_part1(12), 2);
         assert_eq!(super::compute_fuel_from_mass_part1(14), 2);
         assert_eq!(super::compute_fuel_from_mass_part1(1969), 654);
@@ -22,7 +22,7 @@ mod tests {
     }
 
     #[test]
-    fn samples_part2() {
+    fn samples_day01_part2() {
         assert_eq!(super::compute_fuel_from_mass_part2(14), 2);
         assert_eq!(super::compute_fuel_from_mass_part2(1969), 966);
         assert_eq!(super::compute_fuel_from_mass_part2(100756), 50346);
