@@ -14,7 +14,7 @@ struct ProgramState {
 
 impl ProgramState {
     fn get_param(&self, p: usize) -> i32 {
-        let pmode = self.program[self.pc] / (100 * (10 as i32).pow(p as u32)) % 10;
+        let pmode = self.program[self.pc] / (100 * 10i32.pow(p as u32)) % 10;
         assert!(pmode == 0 || pmode == 1);
         if pmode == 0 {
             self.program[self.program[self.pc + p + 1] as usize]
@@ -146,22 +146,18 @@ fn run_amplifier_loop<'a>(program: &Vec<i32>, configs: impl Iterator<Item = &'a 
 
 fn find_max_amplifier_config(program: &Vec<i32>) -> i32 {
     let base_config = [0, 1, 2, 3, 4];
-    let mut best = 0;
-    for permutation in permute::permutations_of(&base_config) {
-        let cur = run_amplifiers(&program, permutation);
-        best = std::cmp::max(best, cur);
-    }
-    best
+    permute::permutations_of(&base_config)
+        .map(|permutation| run_amplifiers(&program, permutation))
+        .max()
+        .unwrap()
 }
 
 fn find_max_amplifier_loop(program: &Vec<i32>) -> i32 {
     let base_config = [9, 8, 7, 6, 5];
-    let mut best = 0;
-    for permutation in permute::permutations_of(&base_config) {
-        let cur = run_amplifier_loop(&program, permutation);
-        best = std::cmp::max(best, cur);
-    }
-    best
+    permute::permutations_of(&base_config)
+        .map(|permutation| run_amplifier_loop(&program, permutation))
+        .max()
+        .unwrap()
 }
 
 #[cfg(test)]
