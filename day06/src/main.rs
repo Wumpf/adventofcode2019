@@ -26,18 +26,52 @@ fn find_root<'a>(connections: &'a HashMap<&str, Vec<&str>>) -> &'a str {
     candidates.iter().next().unwrap()
 }
 
-fn sum_of_level_depths(connections: &HashMap<&str, Vec<&str>>, node: &str, depth: u32) -> u32 {
+fn compute_level_depths_rec<'a>(connections: &'a HashMap<&str, Vec<&str>>, depths: &mut HashMap<&'a str, u32>, node: &'a str, cur_depth: u32) {
+    depths.insert(node, cur_depth);
+
     let edges = match connections.get(node) {
         Some(val) => val,
-        None => return depth,
+        None => return,
     };
-
-    let mut count = depth;
     for edge in edges {
-        count += sum_of_level_depths(connections, edge, depth + 1);
+        compute_level_depths_rec(connections, depths, edge, cur_depth + 1);
+    }
+}
+
+fn compute_level_depths<'a>(connections: &'a HashMap<&str, Vec<&str>>, root: &'a str) -> HashMap<&'a str, u32> {
+    let mut depths: HashMap<&'a str, u32> = HashMap::new();
+    compute_level_depths_rec(connections, &mut depths, root, 0);
+    depths
+}
+
+fn common_ancestor<'a>(connections: &'a HashMap<&str, Vec<&str>>, root: &'a str, a: &'a str, b: &'a str) -> Option<&'a str> {
+    if root == a {
+        return Some(a);
+    }
+    else if root == b {
+        return Some(b);
     }
 
-    count
+    let edges = match connections.get(root) {
+        Some(val) => val,
+        None => return None,
+    };
+    let nodes: Vec<&str> = edges.iter().filter_map(|edge| common_ancestor(connections, edge, a, b)).collect();
+    if nodes.contains(&a) && nodes.contains(&b) {
+        Some(root)
+    } else if nodes.is_empty() {
+        None
+    } else {
+        Some(nodes[0])
+    }
+}
+
+fn graph_distance(connections: &HashMap<&str, Vec<&str>>, depths: &HashMap<&str, u32>, root: &str) -> u32 {
+    let from = "YOU";
+    let to = "SAN";
+
+    let ancestor = common_ancestor(connections, root, from, to);
+    depths[from] + depths[to] - depths[ancestor.unwrap()] * 2 - 2
 }
 
 #[cfg(test)]
@@ -59,7 +93,30 @@ K)L",
         );
         let root = super::find_root(&connections);
         assert_eq!(root, "COM");
-        assert_eq!(super::sum_of_level_depths(&connections, root, 0), 42);
+        let depths = super::compute_level_depths(&connections, root);
+        assert_eq!(depths.values().sum::<u32>(), 42);
+    }
+
+    #[test]
+    fn samples_day06_part2() {
+        let connections = super::parse_connections(
+            "COM)B
+B)C
+C)D
+D)E
+E)F
+B)G
+G)H
+D)I
+E)J
+J)K
+K)L
+K)YOU
+I)SAN",
+        );
+        let root = super::find_root(&connections);
+        let depths = super::compute_level_depths(&connections, root);
+        assert_eq!(super::graph_distance(&connections, &depths, root), 4);
     }
 }
 
@@ -67,5 +124,7 @@ fn main() {
     let puzzle_input = include_str!("input.txt");
     let connections = parse_connections(puzzle_input);
     let root = find_root(&connections);
-    println!("part 1 {}", sum_of_level_depths(&connections, root, 0));
+    let depths = compute_level_depths(&connections, root);
+    println!("part 1 {}", depths.values().sum::<u32>());
+    println!("part 2 {}", graph_distance(&connections, &depths, root));
 }
