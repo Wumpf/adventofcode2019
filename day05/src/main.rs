@@ -5,11 +5,6 @@ fn parse_program(puzzle_input: &str) -> Vec<i32> {
         .collect()
 }
 
-// How to do this idiomatic?
-//fn foo(a: &mut Vec<usize>) {
-//    a[a[0]] = 1;
-//}
-
 fn eval_program(program: &mut Vec<i32>, input: i32) -> Vec<i32> {
     let mut pc = 0; // program counter
     let mut output = Vec::new();
