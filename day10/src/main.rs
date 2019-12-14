@@ -1,3 +1,5 @@
+use std::f64;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 struct Point {
     x: i32,
@@ -80,10 +82,48 @@ fn get_highest_visibility(field: &Vec<Vec<u8>>) -> (u32, Point) {
     (max, maxp)
 }
 
-// fn part2(field: &mut Vec<Vec<u8>>, station: Point) -> u32 {
-//     0
+fn part2_2(field: &mut Vec<Vec<u8>>, station: Point) -> u32 {
+    let mut last_laser_angle = f64::consts::FRAC_PI_2 + 0.001;
 
-// }
+    let mut count = 0;
+
+    loop {
+        let mut any = false;
+        let mut cand_angle = -99999.0;
+        let mut cand_point = Point{x:99999, y:99999};
+        let mut cand_distsq = 999999;
+        for y in 0..field.len() {
+            for x in 0..field[y].len() {
+                if field[y as usize][x as usize] == '#' as u8 {
+                    let dx = x as i32 - station.x;
+                    let dy = y as i32 - station.y;
+                    let distsq = dx * dx + dy * dy;
+                    let mut curangle = (-dy as f64).atan2(dx as f64);
+                    if curangle < 0.0 {
+                        curangle = f64::consts::PI * 2.0 + curangle;
+                    }
+                    if (curangle < last_laser_angle && curangle > cand_angle) || (curangle == cand_angle && cand_distsq > distsq) {
+                        any = true;
+                        cand_angle = curangle;
+                        cand_distsq = distsq;
+                        cand_point = Point{x:x as i32, y:y as i32};
+                    }
+                }
+            }
+        }
+        if any == false {
+            last_laser_angle = f64::consts::PI * 2.0 + 0.000001;
+        } else {
+            last_laser_angle = cand_angle;
+            field[cand_point.y as usize][cand_point.x as usize] = '.' as u8;
+            count += 1;
+            
+            if count == 200 {
+                println!("part 2 {}", cand_point.x * 100 + cand_point.y);
+            }
+        }
+    }
+}
 
 fn parse_field(field: &str) -> Vec<Vec<u8>> {
     field.lines().map(|line| line.bytes().collect()).collect()
@@ -156,6 +196,9 @@ mod tests {
 
 fn main() {
     let puzzle_input = include_str!("input.txt");
-    let p1 = get_highest_visibility(&parse_field(puzzle_input));
+    let mut field = parse_field(puzzle_input);
+    let p1 = get_highest_visibility(&field);
     println!("part 1 {}", p1.0);
+
+    part2_2(&mut field, p1.1);
 }
